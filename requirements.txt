@@ -1,0 +1,8 @@
+beautifulsoup4==4.3.1
+celery==3.0.21
+Django==1.5.2
+django-celery==3.0.21
+psycopg2==2.5.1
+pytz>=2013b
+South==0.8.2
+feedparser==5.1.3
