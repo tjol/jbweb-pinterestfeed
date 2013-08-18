@@ -18,18 +18,18 @@
 
 from django.utils import timezone
 from django.core.urlresolvers import reverse
-import django.contrib.syndication.views as syn
-from django.shortcuts import get_object_or_404
 from django.template import Context
 from django.template.loader import get_template
-from django.http import HttpResponse
+
+import django.contrib.syndication.views as syn
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from pinterestfeed import models, tasks
+from .serializers import PinSerializer
 
 class PinterestFeed (syn.Feed):
     def get_object (self, request, feed):
-        feed.last_requested = timezone.now ()
-        feed.save (update_fields=('last_requested',))
         return feed
 
     def title (self, feed):
@@ -52,9 +52,6 @@ class PinterestFeed (syn.Feed):
     def guid (self, feed):
         return self.feed_url (feed)
 
-    def description (self, feed):
-        return feed.subtitle or feed.title or feed.board or feed.user
-
     def author_link (self, feed):
         return 'http://www.pinterest.com/{0}'.format(feed.user)
 
@@ -74,12 +71,28 @@ feed_view = PinterestFeed ()
 def feed_dispatcher (request, user, board=None):
     try:
         feed = models.Feed.objects.get (user=user, board=board)
+        feed.last_requested = timezone.now ()
+        feed.save (update_fields=('last_requested',))
         return feed_view (request, feed=feed)
     except models.Feed.DoesNotExist:
         feed = models.Feed (user=user, board=board, last_requested=timezone.now ())
         tasks.fetch_feed.delay (feed).wait ()
-        return feed_view (request, feed=feed)
+        return feed_dispatcher (request, user, board)
         #return HttpResponse ("Request accepted, processing pending",
         #                     content_type="text/plain",
         #                     status=202)
 
+
+@api_view(['POST'])
+def hosepipe_view (request, format=None):
+    not_these_urls = set(request.DATA.get('not', []))
+    limit = request.DATA.get('limit', 15)
+
+    serializer = PinSerializer ((
+            p for p in models.Pin.objects
+                                 .order_by ('-pub_date')
+                                 [:limit]
+              if p.url not in not_these_urls),
+                        many=True)
+
+    return Response (serializer.data)

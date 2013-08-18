@@ -77,3 +77,6 @@ class Feed (models.Model):
             return 'http://pinterest.com/{user}/{board}/rss'.format(user=self.user,
                                                                        board=self.board)
 
+    def __unicode__ (self):
+        return u'{0} ({1})'.format (self.title or self.board or '', self.user)
+
