@@ -20,6 +20,7 @@ from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.template import Context
 from django.template.loader import get_template
+from django.http import Http404
 
 import django.contrib.syndication.views as syn
 from rest_framework.decorators import api_view
@@ -77,7 +78,12 @@ def feed_dispatcher (request, user, board=None):
     except models.Feed.DoesNotExist:
         feed = models.Feed (user=user, board=board, last_requested=timezone.now ())
         tasks.fetch_feed.delay (feed).wait ()
-        return feed_dispatcher (request, user, board)
+        try:
+            feed = models.Feed.objects.get (user=user, board=board)
+        except:
+            raise Http404
+        else:
+            return feed_dispatcher (request, user, board)
         #return HttpResponse ("Request accepted, processing pending",
         #                     content_type="text/plain",
         #                     status=202)

@@ -39,17 +39,25 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, lik
 def fetch_feed (feed_obj):
     orig = feedparser.parse (feed_obj.src_url)
 
-    orig_updated = datetime (*orig.feed.updated_parsed[:6], tzinfo=pytz.UTC)
-    if feed_obj.last_updated and feed_obj.last_updated >= orig_updated:
-        return
-    
-    logger.info ("Updating feed: {0}".format(feed_obj.src_url))
+    try:
+        orig_updated = datetime (*orig.feed.updated_parsed[:6], tzinfo=pytz.UTC)
+        if feed_obj.last_updated and feed_obj.last_updated >= orig_updated:
+            return
+        
+        logger.info ("Updating feed: {0}".format(feed_obj.src_url))
 
-    feed_obj.last_updated = timezone.now ()
+        feed_obj.last_updated = timezone.now ()
 
-    feed_obj.title = orig.feed.title
-    feed_obj.subtitle = orig.feed.subtitle
-    feed_obj.save()
+        feed_obj.title = orig.feed.title
+        feed_obj.subtitle = orig.feed.subtitle
+        feed_obj.save()
+    except:
+        try:
+            feed_obj.delete()
+        except:
+            pass
+        finally:
+            return
 
     for entry in orig.entries:
         pin_url = entry.link
