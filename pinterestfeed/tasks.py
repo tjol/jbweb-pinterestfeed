@@ -86,7 +86,12 @@ def scrape_pin (pin):
     request.add_header ('User-Agent', USER_AGENT)
     request.add_header ('Accept', 'text/html')
 
-    stream = urllib2.urlopen (request)
+    try:
+        stream = urllib2.urlopen (request)
+    except:
+        pin.delete ()
+        return
+        
     soup = BeautifulSoup (stream)
 
     # Get basic data
@@ -118,7 +123,7 @@ def scrape_pin (pin):
     pin.save ()
 
 @celery.task
-def update_old_feeds (active_hours=25, ttl_minutes=16):
+def update_old_feeds (active_hours=25, ttl_minutes=7):
     now = timezone.now ()
     requested_since = now - timedelta (hours=active_hours)
     not_updated_since = now - timedelta (minutes=ttl_minutes)
