@@ -116,7 +116,7 @@ def scrape_pin (pin):
     pin.save ()
 
 @celery.task
-def update_old_feeds (active_hours=25, ttl_minutes=25):
+def update_old_feeds (active_hours=25, ttl_minutes=16):
     now = timezone.now ()
     requested_since = now - timedelta (hours=active_hours)
     not_updated_since = now - timedelta (minutes=ttl_minutes)
