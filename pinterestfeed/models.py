@@ -72,9 +72,9 @@ class Feed (models.Model):
     @property
     def src_url (self):
         if self.board is None:
-            return 'http://pinterest.com/{user}/feed.rss'.format(user=self.user)
+            return u'http://pinterest.com/{user}/feed.rss'.format(user=self.user)
         else:
-            return 'http://pinterest.com/{user}/{board}/rss'.format(user=self.user,
+            return u'http://pinterest.com/{user}/{board}/rss'.format(user=self.user,
                                                                        board=self.board)
 
     def __unicode__ (self):

@@ -44,7 +44,7 @@ def fetch_feed (feed_obj):
         if feed_obj.last_updated and feed_obj.last_updated >= orig_updated:
             return
         
-        logger.info ("Updating feed: {0}".format(feed_obj.src_url))
+        logger.info (u"Updating feed: {0}".format(feed_obj.src_url))
 
         feed_obj.last_updated = timezone.now ()
 
