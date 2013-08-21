@@ -76,7 +76,7 @@ def feed_dispatcher (request, user, board=None):
         feed.save (update_fields=('last_requested',))
         return feed_view (request, feed=feed)
     except models.Feed.DoesNotExist:
-        feed = models.Feed.create (user=user, board=board, last_requested=timezone.now ())
+        feed = models.Feed.objects.create (user=user, board=board, last_requested=timezone.now ())
         tasks.fetch_feed.delay (feed).wait ()
         try:
             feed = models.Feed.objects.get (user=user, board=board)
