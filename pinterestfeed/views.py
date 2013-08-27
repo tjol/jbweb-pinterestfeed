@@ -96,6 +96,7 @@ def hosepipe_view (request, format=None):
 
     serializer = PinSerializer ((
             p for p in models.Pin.objects
+                                 .filter (crawled=True)
                                  .order_by ('-pub_date')
                                  [:limit]
               if p.url not in not_these_urls),
