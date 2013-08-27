@@ -75,13 +75,19 @@ def feed_dispatcher (request, user, board=None):
         feed.last_requested = timezone.now ()
         feed.save (update_fields=('last_requested',))
         return feed_view (request, feed=feed)
+    except models.Feed.MultipleObjectsReturned:
+        models.Feed.objects.filter (user=user, board=board).delete ()
+        return feed_dispatcher (request, user, board)
     except models.Feed.DoesNotExist:
         feed = models.Feed.objects.create (user=user, board=board, last_requested=timezone.now ())
         tasks.fetch_feed.delay (feed).wait ()
         try:
             feed = models.Feed.objects.get (user=user, board=board)
-        except:
+        except models.Feed.DoesNotExist:
             raise Http404
+        except models.Feed.MultipleObjectsReturned:
+            models.Feed.objects.filter (user=user, board=board).delete ()
+            return feed_dispatcher (request, user, board)
         else:
             return feed_dispatcher (request, user, board)
         #return HttpResponse ("Request accepted, processing pending",
