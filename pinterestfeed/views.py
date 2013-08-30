@@ -113,13 +113,16 @@ def stats (request):
     now = timezone.now ()
     one_hour_ago = now - timedelta (hours=1)
     twentyfour_h_ago = now - timedelta (hours=24)
+    five_min_ago = now - timedelta (minutes=30)
     fifteen_min_ago = now - timedelta (minutes=30)
     resp = HttpResponse (status=200, content_type='text/plain')
     resp.write ("Total number of feeds: {0}\n".format (models.Feed.objects.count ()))
     resp.write ("Total number of pins: {0}\n".format (models.Pin.objects.count ()))
     resp.write ("Pins not crawled: {0}\n".format (models.Pin.objects.filter (crawled=False).count ()))
     resp.write ("Feeds requested in the last hour: {0}\n".format (models.Feed.objects.filter (last_requested__gte=one_hour_ago).count ()))
+    resp.write ("Feeds requested in the 15 minutes: {0}\n".format (models.Feed.objects.filter (last_requested__gte=fifteen_min_ago).count ()))
     resp.write ("Feeds requested in the 24 hours: {0}\n".format (models.Feed.objects.filter (last_requested__gte=twentyfour_h_ago).count ()))
     resp.write ("Feeds updated in the past 15 minutes: {0}\n".format (models.Feed.objects.filter (last_updated__gte=fifteen_min_ago).count ()))
+    resp.write ("Feeds updated in the past 5 minutes: {0}\n".format (models.Feed.objects.filter (last_updated__gte=five_min_ago).count ()))
     return resp
 
