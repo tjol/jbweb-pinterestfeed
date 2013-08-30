@@ -128,8 +128,8 @@ def update_old_feeds (active_hours=25, ttl_minutes=7):
     requested_since = now - timedelta (hours=active_hours)
     not_updated_since = now - timedelta (minutes=ttl_minutes)
 
-    for feed in (Feed.objects.filter (last_updated__lt=not_updated_since,
-                                     last_requested__gt=requested_since)
+    for feed in (Feed.objects.exclude (last_updated__gte=not_updated_since)
+                             .filter  (last_requested__gt=requested_since)
                              .order_by ('last_updated')):
         fetch_feed.delay (feed)
 
