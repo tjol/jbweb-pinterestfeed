@@ -18,6 +18,7 @@
 
 from datetime import timedelta
 from django.utils import timezone
+from django.db.models.aggregates import Max
 from django.core.urlresolvers import reverse
 from django.template import Context
 from django.template.loader import get_template
@@ -103,12 +104,17 @@ def hosepipe_view (request, format=None):
     not_these_urls = set(request.DATA.get('not', []))
     limit = request.DATA.get('limit', 15)
 
-    serializer = PinSerializer ((
-            p for p in models.Pin.objects
-                                 .filter (crawled=True)
-                                 .order_by ('-pub_date')
-                                 [:limit]
-              if p.url not in not_these_urls),
+    most_current_feeds = (models.Feed.objects
+                              .values ('id', 'user', 'board')
+                              .annotate (newest_pin=Max('pins__pub_date'))
+                              .filter (newest_pin__isnull=False)
+                              .order_by ('-newest_pin'))[:limit]
+
+
+    serializer = PinSerializer ((p for p in (
+            models.Feed (id=f['id']).pins.filter (pub_date=f['newest_pin'])[0]
+              for f in most_current_feeds)
+            if p.url not in not_these_urls),
                         many=True)
 
     return Response (serializer.data)
