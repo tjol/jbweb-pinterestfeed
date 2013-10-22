@@ -129,6 +129,7 @@ def stats (request):
     fifteen_min_ago = now - timedelta (minutes=30)
     resp = HttpResponse (status=200, content_type='text/plain')
     resp.write ("Total number of feeds: {0}\n".format (models.Feed.objects.count ()))
+    resp.write ("Total number of users: {0}\n".format (models.Feed.objects.values('user').distinct().count ()))
     resp.write ("Total number of pins: {0}\n".format (models.Pin.objects.count ()))
     resp.write ("Pins not crawled: {0}\n".format (models.Pin.objects.filter (crawled=False).count ()))
     resp.write ("Feeds requested in the last hour: {0}\n".format (models.Feed.objects.filter (last_requested__gte=one_hour_ago).count ()))
