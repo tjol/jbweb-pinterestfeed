@@ -68,7 +68,7 @@ def fetch_feed (feed_obj):
             feed_obj.pins.add (pin)
         except Pin.DoesNotExist:
             pin = Pin (url=pin_url)
-            soup = BeautifulSoup (entry.summary)
+            soup = BeautifulSoup (entry.summary.encode('utf-8'))
             pin.pub_date = datetime (*entry.published_parsed[:6], tzinfo=pytz.UTC)
             pin.img_url = soup.find ('img')['src']
             try:
