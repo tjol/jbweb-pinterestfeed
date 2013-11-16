@@ -80,6 +80,11 @@ def fetch_feed (feed_obj):
 
             scrape_pin.delay (pin)
 
+    extrapins = feed_obj.pins.order_by ('-pub_date') [25:]
+    if extrapins:
+        #delete pins I don't need.
+        Pin.objects.filter (pk__in=extrapins).delete()
+
 @celery.task
 def scrape_pin (pin):
     request = urllib2.Request (pin.url)

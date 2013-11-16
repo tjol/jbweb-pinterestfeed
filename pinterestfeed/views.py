@@ -76,8 +76,10 @@ feed_view = PinterestFeed ()
 def feed_dispatcher (request, user, board=None):
     try:
         feed = models.Feed.objects.get (user=user, board=board)
-        feed.last_requested = timezone.now ()
-        feed.save (update_fields=('last_requested',))
+        now = timezone.now ()
+        if feed.last_requested != now:
+            feed.last_requested = timezone.now ()
+            feed.save (update_fields=('last_requested',))
         return feed_view (request, feed=feed)
     except models.Feed.MultipleObjectsReturned:
         models.Feed.objects.filter (user=user, board=board).delete ()
@@ -112,9 +114,11 @@ def hosepipe_view (request, format=None):
 
 
     serializer = PinSerializer ((p for p in (
-            models.Feed (id=f['id']).pins.filter (pub_date=f['newest_pin'])[0]
+            (list(models.Feed (id=f['id'])
+                    .pins.filter (pub_date=f['newest_pin'])[:1])
+                + [None])[0]
               for f in most_current_feeds)
-            if p.url not in not_these_urls),
+            if p is not None and p.url not in not_these_urls),
                         many=True)
 
     return Response (serializer.data)
